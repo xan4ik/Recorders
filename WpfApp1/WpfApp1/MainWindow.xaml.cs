@@ -19,30 +19,20 @@ namespace WpfApp1
         private Pipeline pipeline;
         private Colorizer colorizer;
         private CancellationTokenSource tokenSource = new CancellationTokenSource();
-        private static string mainPathDcam;
-        private static string mainPathDcolor;
-        static int tick = 0;
+        private const string FolderName = "\\DCAM";
+        private static int tick = 0;
 
         static Action<VideoFrame> UpdateImage(Image img)
         {
-
-            //SaveImageToJPEG(img, @"C:\Users\Stack\source\repos\WindowsFormsApp4\WindowsFormsApp4\bin\Debug\i.jpg");
             var wbmp = img.Source as WriteableBitmap;
             return new Action<VideoFrame>(
                 frame =>
                 {
-                    using (System.IO.FileStream stream5 = new System.IO.FileStream(mainPathDcolor + "\\" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "_" + DateTime.Now.Second + " " + tick + ".png", System.IO.FileMode.Create))
-                    {
-                        PngBitmapEncoder encoder5 = new PngBitmapEncoder();
-                        encoder5.Frames.Add(BitmapFrame.Create((img.Source as WriteableBitmap).Clone()));
-                        encoder5.Save(stream5);
-                    }
-
                     var rect = new Int32Rect(0, 0, frame.Width, frame.Height);
                     wbmp.WritePixels(rect, frame.Data, frame.Stride * frame.Height, frame.Stride);
                 });
 
-
+           
         }
 
         static Action<VideoFrame> UpdateDepthImage(Image img)
@@ -56,65 +46,87 @@ namespace WpfApp1
                 });
         }
 
-        private static void SaveImageToJPEG(Image ImageToSave, string Location)
-        {
-            RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap((int)ImageToSave.Source.Width,
-                                                                           (int)ImageToSave.Source.Height,
-                                                                           1000, 1000, PixelFormats.Default);
-            renderTargetBitmap.Render(ImageToSave);
-            JpegBitmapEncoder jpegBitmapEncoder = new JpegBitmapEncoder();
-            jpegBitmapEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-            using (System.IO.FileStream fileStream = new System.IO.FileStream(Location, System.IO.FileMode.Create))
-            {
-                jpegBitmapEncoder.Save(fileStream);
-                fileStream.Flush();
-                fileStream.Close();
-            }
-        }
-
+      
         public MainWindow()
         {
-            var args = Environment.GetCommandLineArgs();
-            var mainPath = @"C:\Users\Stack\Desktop\все\LogFile\dcam " + args[1];
-            mainPathDcam = mainPath + "\\depth";
-            mainPathDcolor = mainPath + "\\color";
-
-            System.IO.Directory.CreateDirectory(mainPath);
-            System.IO.Directory.CreateDirectory(mainPathDcam);
-            System.IO.Directory.CreateDirectory(mainPathDcolor);
-
-
+            var args = Environment.GetCommandLineArgs();           
+            var dir = System.IO.Directory.CreateDirectory(args[0] + FolderName);
 
             InitializeComponent();
 
-
             try
             {
-                this.MouseDown += MainWindow_MouseDown;
                 Action<VideoFrame> updateDepth;
                 Action<VideoFrame> updateColor;
 
                 // The colorizer processing block will be used to visualize the depth frames.
                 colorizer = new Colorizer();
 
-                // Create and config the pipeline to strem color and depth frames.
+                this.Closing += control_Closing;
+                
+
+                #region PlayBack
+
+                //var ctx = new Context();
+                //var playback = ctx.AddDevice(@"log\ros6.bag");
+                //var depth = playback.Sensors[0];
+                //var color = playback.Sensors[1];
+                //var syncer = new Syncer();
+
+
+                //depth.Open(depth.StreamProfiles[0]);
+                //color.Open(color.StreamProfiles[0]);
+
+                //depth.Start(syncer.SubmitFrame);
+                //color.Start(syncer.SubmitFrame);
+
+                //Console.WriteLine(playback.FileName);
+                //playback.Realtime = true;
+
+                //var start = DateTime.Now;
+                ////void Print() => Console.WriteLine($"Real: {DateTime.Now - start} Status: {playback.Status,-7} Playback: {playback.Position}/{playback.Duration}");
+
+                //int framesCount = 0;
+
+                //Task.Factory.StartNew(() =>
+                //{
+                //    while (!tokenSource.Token.IsCancellationRequested)
+                //    {
+                //        using (var new_frames = syncer.WaitForFrames())
+                //        {
+                //            if (new_frames.Count == 2)
+                //            {
+                //                var depthFrame = new_frames.DepthFrame.DisposeWith(new_frames);
+                //                var colorFrame = new_frames.ColorFrame.DisposeWith(new_frames);
+
+                //                var colorizedDepth = colorizer.Process<VideoFrame>(depthFrame).DisposeWith(new_frames);
+
+                //                // Render the frames.
+                //                Dispatcher.Invoke(DispatcherPriority.Render, updateDepth, colorizedDepth);
+                //                Dispatcher.Invoke(DispatcherPriority.Render, updateColor, colorFrame);
+                //                Dispatcher.Invoke(new Action(() =>
+                //                {
+                //                    txtTimeStamp.Text = "Frames: " + ++framesCount;
+                //                    //Console.WriteLine($"#{res.Number} {res.TimestampDomain} {res.Timestamp:F2}");
+                //                }));
+                //            }
+                //        }
+                //    }
+                //}, tokenSource.Token);
+                #endregion
+                #region Record
+
                 pipeline = new Pipeline();
 
                 var cfg = new Config();
                 cfg.EnableStream(Stream.Depth, 640, 480);
                 cfg.EnableStream(Stream.Color, 640, 480);
 
-                var selection = pipeline.Start(cfg);
-                // coordinateManager.DepthCamMetrix = selection.GetStream<VideoStreamProfile>(Stream.Depth).GetIntrinsics();
+                var pp = pipeline.Start(cfg);
 
-                Sensor sensor = selection.Device.Sensors[0];
-                float scale = sensor.DepthScale;
+                SetupWindow(pp, out updateDepth, out updateColor);
 
-                // metrics
-                var metrix = selection.GetStream<VideoStreamProfile>(Stream.Depth).GetIntrinsics();
-
-                var converter = new PixelToVecto3Converter(metrix);
-                var selected_device = selection.Device;
+                var selected_device = pp.Device;
                 var depth_sensor = selected_device.Sensors[0];
 
                 if (depth_sensor.Options.Supports(Option.LaserPower))
@@ -124,68 +136,41 @@ namespace WpfApp1
                 }
 
 
-                SetupWindow(selection, out updateDepth, out updateColor);
-
-                //Task.Factory.StartNew(() =>
-                //{
-                //    using (System.IO.StreamWriter nmeaWriter = new System.IO.StreamWriter(@"C:\Users\TERYA\OneDrive\Рабочий стол\WpfApp1\WpfApp1\nmeaLog.txt", true))
-                //    {
-                //        SerialPort port = new SerialPort("COM5", 115200);
-                //        long tick = 0;
-
-                //        nmeaWriter.WriteLine("Systime: " + DateTime.Now);
-                //        port.Open();
-
-                //        while (!tokenSource.Token.IsCancellationRequested)
-                //        {
-                //            nmeaWriter.WriteLine(port.ReadLine());
-                //            tick++;
-                //            if (tick % 11 == 0)
-                //            {
-                //                nmeaWriter.WriteLine("\nSystime: " + DateTime.Now);
-                //            }
-                //        }
-                //    }
-                //}, tokenSource.Token);
+                bool disposed = true;
 
                 Task.Factory.StartNew(() =>
                 {
                     while (!tokenSource.Token.IsCancellationRequested)
                     {
-                        // We wait for the next available FrameSet and using it as a releaser object that would track
-                        // all newly allocated .NET frames, and ensure deterministic finalization
-                        // at the end of scope. 
                         using (var frames = pipeline.WaitForFrames())
                         {
                             var colorFrame = frames.ColorFrame.DisposeWith(frames);
                             var depthFrame = frames.DepthFrame.DisposeWith(frames);
 
-                            Frame = depthFrame;
-                            // We colorize the depth frame for visualization purposes
                             var colorizedDepth = colorizer.Process<VideoFrame>(depthFrame).DisposeWith(frames);
 
-                            // Render the frames.
                             Dispatcher.Invoke(DispatcherPriority.Render, updateDepth, colorizedDepth);
                             Dispatcher.Invoke(DispatcherPriority.Render, updateColor, colorFrame);
+                            Dispatcher.Invoke(() => { txtTimeStamp.Text = "Frames: " + tick; });
 
-                            Dispatcher.Invoke(new Action(() =>
-                            {
-                                String depth_dev_sn = depthFrame.Sensor.Info[CameraInfo.SerialNumber];
-                                txtTimeStamp.Text = "Frames: " + tick;//+ coord.Process(depthFrame, selectArea); //distanceManager.CalculateArea(depthFrame, selectArea); // + " \n " +
-                                //                                    coordinateManager.CalculateArea(depthFrame, selectArea);   // depth_dev_sn + " : " + String.Format("{0,-20:0.00}", depthFrame.Timestamp) + "(" + depthFrame.TimestampDomain.ToString() + ")";
-                            }));
-
-
-
-                            //Console.WriteLine(i + " sss");
-                            //i++;
-
-                            WriteMatrixToStream(depthFrame, converter);
-
-                            tick++;
                         }
+
+                        if (disposed)
+                        {
+                            Task.Factory.StartNew(() =>
+                            {
+                                disposed = false;
+                                using (new WaitAndDispose(1000, new RecordDevice(selected_device, dir + $"\\log_of_{DateTime.Now.Ticks}.bag"))) //$"log\\ros{tick++}.bag"
+                                {
+                                    disposed = true;
+                                };
+
+                            });
+                        }
+
                     }
                 }, tokenSource.Token);
+                #endregion
             }
             catch (Exception ex)
             {
@@ -193,91 +178,6 @@ namespace WpfApp1
                 Application.Current.Shutdown();
             }
         }
-
-
-        public class PixelToVecto3Converter
-        {
-            private Intrinsics intrinsics;
-
-            public PixelToVecto3Converter(Intrinsics intrinsics)
-            {
-                this.intrinsics = intrinsics;
-            }
-
-            public float ConverX(int x, float depth)
-            {
-                return (x - intrinsics.ppx) / intrinsics.fx * depth;
-            }
-
-            public float ConverY(int y, float depth)
-            {
-                return (y - intrinsics.ppy) / intrinsics.fy * depth;
-            }
-
-
-            public Vector3Coordinate ConvertFrom(int x, int y, float depth)
-            {
-                float newX = ConverX(x, depth);
-                float newY = ConverY(y, depth);
-                return new Vector3Coordinate(newX, newY, depth);
-            }
-        }
-
-
-        public struct Vector3Coordinate 
-        {
-            public float X;
-            public float Y;
-            public float Z;
-
-            public Vector3Coordinate(float x, float y, float z)
-            {
-                X = x;
-                Y = y;
-                Z = z;
-            }
-        }
-
-        private void MainWindow_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            //WriteMatrixToStream(Frame);
-            Count++;
-        }
-
-        static DepthFrame Frame;
-        static int Count = 0;
-
-        //private System.IO.StreamWriter writer = new System.IO.StreamWriter(@"C:\Users\Stack\Desktop\все\WpfApp1\WpfApp1\log.txt", true);
-        private void WriteMatrixToStream(DepthFrame frame, PixelToVecto3Converter converter)
-        {
-            try
-            {
-                var stream = System.IO.File.Create(mainPathDcam + "\\" + DateTime.Now.Hour + "_" + DateTime.Now.Minute + "_" + DateTime.Now.Second + " " + tick);
-                using (var writer = new System.IO.StreamWriter(stream))
-                {
-                    for (int i = 0; i < 640; i++)
-                    {
-                        for (int j = 0; j < 480; j++)
-                        {
-                            var point = converter.ConvertFrom(i, j, frame.GetDistance(i, j));
-
-                            //writer.WriteLine(String.Format("{0},{1},{2}", point.X, point.Y, point.Z));
-                            writer.Write("{0} ", frame.GetDistance(i, j));
-                        }
-                        writer.WriteLine();
-                    }
-                    writer.WriteLine();
-                }
-            }
-            catch (Exception)
-            {
-                Count--;
-            }
-        }
-
-        //private System.IO.StreamWriter nmeaWriter = new System.IO.StreamWriter(@"C:\Users\Lev\source\repos\WpfApp1\WpfApp1\nmeaLog.txt", true);
-
-
 
         private void control_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -296,6 +196,24 @@ namespace WpfApp1
         }
     }
 
+
+
+    class WaitAndDispose : IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+        public WaitAndDispose(int millisecodsDelay, RecordDevice dev)
+        {
+            Task.Delay(millisecodsDelay)
+                    .ContinueWith(_ => Console.WriteLine(dev.FileName))
+                    .ContinueWith(_ => dev.Dispose())
+                    .Wait();
+        }
+
+        public void Dispose()
+        {
+            IsDisposed = true;
+        }
+    }
 }
 
 

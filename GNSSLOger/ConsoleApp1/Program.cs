@@ -30,16 +30,16 @@ namespace ConsoleApp1
                 LoadEXE();
                 LogString("Exe loaded!");
 
-                var name = CreateLogDirrectory();
-                LogString("Dirrectory created " + name);
+                var recordPath = CreateLogDirrectory();
+                LogString("Dirrectory created " + recordPath);
 
-                var gnss = Process.Start(GNSS_exePath, name + " " + COM);
+                var gnss = Process.Start(GNSS_exePath, recordPath + " " + COM);
                     gnss.EnableRaisingEvents = true;
                     gnss.Exited += OnProcessClose;
                 processes.Add(gnss);
                 LogString("GNSS - Process started: " + gnss.Id);
 
-                var dcam = Process.Start(DCAM_exePath, name);
+                var dcam = Process.Start(DCAM_exePath, recordPath);
                     dcam.EnableRaisingEvents = true;
                     dcam.Exited += OnProcessClose;
                 processes.Add(dcam);
