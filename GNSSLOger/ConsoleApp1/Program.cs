@@ -34,14 +34,14 @@ namespace ConsoleApp1
                 LogString("Dirrectory created " + recordPath);
 
                 var gnss = Process.Start(GNSS_exePath, recordPath + " " + COM);
-                    gnss.EnableRaisingEvents = true;
-                    gnss.Exited += OnProcessClose;
+                gnss.EnableRaisingEvents = true;
+                gnss.Exited += OnProcessClose;
                 processes.Add(gnss);
                 LogString("GNSS - Process started: " + gnss.Id);
 
                 var dcam = Process.Start(DCAM_exePath, recordPath);
-                    dcam.EnableRaisingEvents = true;
-                    dcam.Exited += OnProcessClose;
+                dcam.EnableRaisingEvents = true;
+                dcam.Exited += OnProcessClose;
                 processes.Add(dcam);
                 LogString("DCAM - Process started: " + dcam.Id);
 
@@ -49,8 +49,9 @@ namespace ConsoleApp1
                 LogString("Press any button to stop record", ConsoleColor.Yellow);
                 Console.ReadKey();
 
-                //ShutDown();
+                ShutDown();
                 LogString("Exit");
+                Console.ReadKey();
             }
             catch (Exception exc) 
             {

@@ -9,7 +9,7 @@ namespace GNSSLOger
 {
     class Program
     {
-        private const string FolderName = "NMEA";
+        private const string FolderName = "\\NMEA";
 
         static void Main(string[] args)
         {

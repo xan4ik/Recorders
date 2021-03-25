@@ -50,7 +50,7 @@ namespace WpfApp1
         public MainWindow()
         {
             var args = Environment.GetCommandLineArgs();           
-            var dir = System.IO.Directory.CreateDirectory(args[0] + FolderName);
+            var dir = System.IO.Directory.CreateDirectory(args[1] + FolderName);
 
             InitializeComponent();
 
@@ -151,7 +151,7 @@ namespace WpfApp1
 
                             Dispatcher.Invoke(DispatcherPriority.Render, updateDepth, colorizedDepth);
                             Dispatcher.Invoke(DispatcherPriority.Render, updateColor, colorFrame);
-                            Dispatcher.Invoke(() => { txtTimeStamp.Text = "Frames: " + tick; });
+                            Dispatcher.Invoke(() => { txtTimeStamp.Text = "Frames: " + tick++; });
 
                         }
 
@@ -160,9 +160,11 @@ namespace WpfApp1
                             Task.Factory.StartNew(() =>
                             {
                                 disposed = false;
-                                using (new WaitAndDispose(1000, new RecordDevice(selected_device, dir + $"\\log_of_{DateTime.Now.Ticks}.bag"))) //$"log\\ros{tick++}.bag"
+                                var path = dir.FullName + "\\" + DateTime.Now.Ticks + ".bag";
+                                using (new WaitAndDispose(1000, new RecordDevice(selected_device, path))) //$"log\\ros{tick++}.bag"
                                 {
                                     disposed = true;
+                                    Console.WriteLine("recorded " + path);
                                 };
 
                             });
