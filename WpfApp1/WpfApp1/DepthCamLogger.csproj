@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9ABEB86D-6DB6-4584-A30F-C1AD3FEFA7A0}</ProjectGuid>
+    <ProjectGuid>{C5FD6EBD-071C-4B17-A481-D1DD11176277}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>WpfApp1</RootNamespace>
     <AssemblyName>WpfApp1</AssemblyName>

@@ -63,12 +63,12 @@ namespace WpfApp1
                 colorizer = new Colorizer();
 
                 this.Closing += control_Closing;
-                
+
 
                 #region PlayBack
 
                 //var ctx = new Context();
-                //var playback = ctx.AddDevice(@"log\ros6.bag");
+                //var playback = ctx.AddDevice(@"C:\Users\Stack\Desktop\log\LogTestFolder\LogFrom_21_6_42\DCAM\637523032062841397.bag");
                 //var depth = playback.Sensors[0];
                 //var color = playback.Sensors[1];
                 //var syncer = new Syncer();
@@ -82,6 +82,8 @@ namespace WpfApp1
 
                 //Console.WriteLine(playback.FileName);
                 //playback.Realtime = true;
+
+                //SetupWindow(out updateDepth, out updateColor);
 
                 //var start = DateTime.Now;
                 ////void Print() => Console.WriteLine($"Real: {DateTime.Now - start} Status: {playback.Status,-7} Playback: {playback.Position}/{playback.Duration}");
