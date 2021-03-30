@@ -1,0 +1,3 @@
+﻿C:\Users\Stack\Desktop\все\GNSSLOger\GNSSLOger\bin\Debug\GNSSLOger.exe
+C:\Users\Stack\Desktop\все\WpfApp1\WpfApp1\bin\Debug\WpfApp1.exe
+COM4
