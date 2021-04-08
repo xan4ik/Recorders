@@ -13,7 +13,6 @@ using Intel.RealSense;
 
 namespace WpfApp1
 {
-
     public partial class MainWindow : Window
     {
         private Pipeline pipeline;
@@ -64,71 +63,25 @@ namespace WpfApp1
 
                 this.Closing += control_Closing;
 
-
-                #region PlayBack
-
-                //var ctx = new Context();
-                //var playback = ctx.AddDevice(@"C:\Users\Stack\Desktop\log\LogTestFolder\LogFrom_21_6_42\DCAM\637523032062841397.bag");
-                //var depth = playback.Sensors[0];
-                //var color = playback.Sensors[1];
-                //var syncer = new Syncer();
+                string stringConfig = ConfigLoader.LoadConfig(args[2]);
 
 
-                //depth.Open(depth.StreamProfiles[0]);
-                //color.Open(color.StreamProfiles[0]);
-
-                //depth.Start(syncer.SubmitFrame);
-                //color.Start(syncer.SubmitFrame);
-
-                //Console.WriteLine(playback.FileName);
-                //playback.Realtime = true;
-
-                //SetupWindow(out updateDepth, out updateColor);
-
-                //var start = DateTime.Now;
-                ////void Print() => Console.WriteLine($"Real: {DateTime.Now - start} Status: {playback.Status,-7} Playback: {playback.Position}/{playback.Duration}");
-
-                //int framesCount = 0;
-
-                //Task.Factory.StartNew(() =>
-                //{
-                //    while (!tokenSource.Token.IsCancellationRequested)
-                //    {
-                //        using (var new_frames = syncer.WaitForFrames())
-                //        {
-                //            if (new_frames.Count == 2)
-                //            {
-                //                var depthFrame = new_frames.DepthFrame.DisposeWith(new_frames);
-                //                var colorFrame = new_frames.ColorFrame.DisposeWith(new_frames);
-
-                //                var colorizedDepth = colorizer.Process<VideoFrame>(depthFrame).DisposeWith(new_frames);
-
-                //                // Render the frames.
-                //                Dispatcher.Invoke(DispatcherPriority.Render, updateDepth, colorizedDepth);
-                //                Dispatcher.Invoke(DispatcherPriority.Render, updateColor, colorFrame);
-                //                Dispatcher.Invoke(new Action(() =>
-                //                {
-                //                    txtTimeStamp.Text = "Frames: " + ++framesCount;
-                //                    //Console.WriteLine($"#{res.Number} {res.TimestampDomain} {res.Timestamp:F2}");
-                //                }));
-                //            }
-                //        }
-                //    }
-                //}, tokenSource.Token);
-                #endregion
-                #region Record
-
+#region Record
                 pipeline = new Pipeline();
 
-                var cfg = new Config();
-                cfg.EnableStream(Stream.Depth, 640, 480);
-                cfg.EnableStream(Stream.Color, 640, 480);
+                //var cfg = new Config();
+                //cfg.EnableStream(Stream.Depth, 640, 480);
+                //cfg.EnableStream(Stream.Color, 640, 480);
 
-                var pp = pipeline.Start(cfg);
+                var pp = pipeline.Start();
 
                 SetupWindow(pp, out updateDepth, out updateColor);
 
                 var selected_device = pp.Device;
+
+                var config = AdvancedDevice.FromDevice(selected_device);
+
+                config.JsonConfiguration = stringConfig; 
                 var depth_sensor = selected_device.Sensors[0];
 
                 if (depth_sensor.Options.Supports(Option.LaserPower))
@@ -174,7 +127,7 @@ namespace WpfApp1
 
                     }
                 }, tokenSource.Token);
-                #endregion
+#endregion
             }
             catch (Exception ex)
             {
@@ -216,6 +169,44 @@ namespace WpfApp1
         public void Dispose()
         {
             IsDisposed = true;
+        }
+    }
+
+
+
+    public static class ConfigLoader 
+    {
+        public static string LoadConfig(string configType) 
+        {
+            switch (configType)
+            {
+                case ("accuracy"):
+                    {
+                        return ReadFromFile("HighResHighAccuracyPreset.json");
+                    }
+                case ("density"):
+                    {
+                        return ReadFromFile("HighResHighDensityPreset.json");
+                    }
+                case ("medium"):
+                    {
+                        return ReadFromFile("HighResMidDensityPreset.json");
+                    }
+                case ("default"):
+                    {
+                        return ReadFromFile("DefaultPreset.json");
+                    }
+                default:
+                    throw new ArgumentException("Not supported value: " + configType);
+            }
+        }
+
+        private static string ReadFromFile(string fileName)
+        {
+            using (System.IO.StreamReader reader = new System.IO.StreamReader(AppDomain.CurrentDomain.BaseDirectory +"\\"+ fileName)) 
+            {
+                return reader.ReadToEnd();
+            }
         }
     }
 }

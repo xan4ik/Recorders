@@ -1,9 +1,9 @@
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\bin\Debug\VisualLogger.exe
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\bin\Debug\VisualLogger.pdb
-C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.csprojAssemblyReference.cache
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.Form1.resources
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.Properties.Resources.resources
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.csproj.GenerateResource.cache
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.csproj.CoreCompileInputs.cache
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.exe
 C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.pdb
+C:\Users\Stack\Desktop\все\VisualLogger\VisualLogger\obj\Debug\VisualLogger.csprojAssemblyReference.cache

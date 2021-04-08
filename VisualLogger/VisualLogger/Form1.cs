@@ -11,7 +11,6 @@ namespace VisualLogger
     {
         private string GNSS_exePath;
         private string DCAM_exePath;
-        private string COM;
         private string logDirrectoryPath;
         private List<Process> processes;
 
@@ -21,6 +20,8 @@ namespace VisualLogger
             LoadEXE();
 
             processes = new List<Process>();
+            comBox.SelectedIndex = 0;
+            setBox.SelectedIndex = 0;
             logDirrectoryPath = null;
 
             FormClosing += Form1_FormClosing; 
@@ -39,7 +40,6 @@ namespace VisualLogger
                 {
                     GNSS_exePath = reader.ReadLine();
                     DCAM_exePath = reader.ReadLine();
-                    COM = reader.ReadLine();
                 }
             }
             catch
@@ -76,13 +76,13 @@ namespace VisualLogger
             var recordPath = CreateLogDirrectory();
             LogString("Папка записи создана " + recordPath, Color.Green);
 
-            var gnss = Process.Start(GNSS_exePath, recordPath + " " + COM);
+            var gnss = Process.Start(GNSS_exePath, recordPath + " " + comBox.SelectedItem.ToString());
                 gnss.EnableRaisingEvents = true;
                 gnss.Exited += OnProcessClose;
             processes.Add(gnss);
             LogString("GNSS - процесс запущен: " + gnss.Id, Color.Green);
 
-            var dcam = Process.Start(DCAM_exePath, recordPath);
+            var dcam = Process.Start(DCAM_exePath, recordPath + " " + setBox.SelectedItem.ToString());
                 dcam.EnableRaisingEvents = true;
                 dcam.Exited += OnProcessClose;
             processes.Add(dcam);
